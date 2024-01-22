@@ -60,6 +60,19 @@ class Data: # migrated Location
             
             return choose                # оставлю как есть в зависимости от того что понадобится тебе. Возвращается объект датафрейма там можно медиану найти
     
+    def to_validation_type(self):
+        
+        X = np.array([self.data['Год по Гринвичу'].to_numpy(),
+                self.data['Месяц по Гринвичу'].to_numpy(),
+                self.data['День по Гринвичу'].to_numpy(),
+                self.data['Широта'].to_numpy(dtype=float),
+                self.data['Долгота'].to_numpy(dtype=float),
+                self.data['Высота над уровнем моря'].to_numpy(dtype=float)])
+
+
+        X = np.transpose(X)
+        return X        
+    
     
 class Predictions:
     def __init__(self) -> None:
@@ -83,7 +96,7 @@ class Predictions:
             
             return np.transpose(np.array(pred))
 
-        elif model == 'RFR':
+        elif model == 'RFR': # TODO: дописать херню 
             rfr_reg = joblib.load('data//sklearn_models//rf_regressor.pkl')
             pred = rfr_reg.predict(data)
             return pred
