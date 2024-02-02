@@ -38,7 +38,7 @@ class Data: # migrated Location
     def set_location(self, station_index=int, time=list):
         # тут короче либо в бд хранить данные климатические и к ним обращаться
         # либо яндекс API юзать
-        # написан варик где пока все на локал data/srock8/___.dat
+        # написан варик где пока все на локал data/storage/___.dat
         for i in os.listdir('data/storage/'):
             sin_index = int(i.replace('.dat', '').replace('.csv', '').replace('.xlsx', ''))
             if sin_index == station_index:
@@ -74,34 +74,41 @@ class Data: # migrated Location
         return X        
     
     
-class Predictions:
-    def __init__(self) -> None:
-        pass
-    
-    @staticmethod
-    def make_prediction(data, model='XGBoost'):
-        pred = []
-        # data format: Y; m; d; latitude; longitude; altitude above sea level
-        # output: tempreture percipitation wind humidity
-        if model == 'XGBoost':
-            Xg_reg_temp = joblib.load('data/sklearn_models/xg_regressor.pkl')
-            Xg_reg_per = joblib.load('data/sklearn_models/xg_regressor_per.pkl')
-            Xg_reg_wind = joblib.load('data/sklearn_models/xg_regressor_wind.pkl')
-            Xg_reg_hum = joblib.load('data/sklearn_models/xg_regressor_hum.pkl')
-            
-            pred.append(Xg_reg_temp.predict(data))
-            pred.append(Xg_reg_per.predict(data))
-            pred.append(Xg_reg_wind.predict(data))
-            pred.append(Xg_reg_hum.predict(data))
-            
-            return np.transpose(np.array(pred))
 
-        elif model == 'RFR': # TODO: дописать херню 
-            rfr_reg = joblib.load('data//sklearn_models//rf_regressor.pkl')
-            pred = rfr_reg.predict(data)
-            return pred
+def make_prediction(data, model='XGBoost'):
+    pred = []
+    # data format: Y; m; d; hour; latitude; longitude; altitude above sea level
+    # output: tempreture percipitation wind humidity pressure
+    if model == 'XGBoost':
+        Xg_reg_temp = joblib.load('data/sklearn_models/xg_regressor_temp.pkl')
+        Xg_reg_per = joblib.load('data/sklearn_models/xg_regressor_per.pkl')
+        Xg_reg_wind = joblib.load('data/sklearn_models/xg_regressor_wind.pkl')
+        Xg_reg_hum = joblib.load('data/sklearn_models/xg_regressor_hum.pkl')
+        Xg_reg_press = joblib.load('data/sklearn_models/xg_regressor_press.pkl')
         
-            
+        pred.append(Xg_reg_temp.predict(data))
+        pred.append(Xg_reg_per.predict(data))
+        pred.append(Xg_reg_wind.predict(data))
+        pred.append(Xg_reg_hum.predict(data))
+        pred.append(Xg_reg_press.predict(data))
+        
+        return np.transpose(np.array(pred))
+
+    elif model == 'RFR': # TODO: дописать херню 
+        rfr_reg = joblib.load('data//sklearn_models//rf_regressor.pkl')
+        pred = rfr_reg.predict(data)
+        return pred
+        
+    
+def make_day_prediction(date, model='XGBoost'):
+    pred = []
+    date = [[[date[0], date[1], date[2], i, date[4], date[5], date[6]]] for i in range(0, 25, 3)]
+    for data in date:
+        pred.append(make_prediction(data)[0])
+    # return 9 np.ndarray
+    return pred, len(pred)
+        
+
             
             
             
@@ -142,3 +149,5 @@ def migrated_pand():
 #        [1.966e+03, 1.000e+00, 1.500e+01, 7.950e+01, 7.700e+01, 1.000e+01]],
 #                   model='XGBoost'))
         
+# p = Predictions()
+# p.make_day_prediction()
